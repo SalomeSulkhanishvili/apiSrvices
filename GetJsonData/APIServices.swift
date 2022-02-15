@@ -31,8 +31,8 @@ class APIServicies {
         })
     }
     
-    static func getRestrictionsInfo(from country: String, to airportCode: String, with vaccine: String, completion: @escaping (Result<Restrictions,Error>) -> Void) {
-        let strUrl = "http://covid-restrictions-api.noxtton.com/v1/restriction/TBS/GVA?nationality=\(country)&vaccine=\(vaccine)&transfer=\(airportCode)"
+    static func getRestrictionsInfo(from country: String, countryCode: String, to airportCode: String, with vaccine: String, completion: @escaping (Result<Restrictions,Error>) -> Void) {
+        let strUrl = "http://covid-restrictions-api.noxtton.com/v1/restriction/TBS/\(airportCode)?nationality=\(country)&vaccine=\(vaccine)&transfer=\(countryCode)"
         guard let url = URL(string: strUrl) else { return }
         URLSession.shared.dataTask(with: url) { (data, res, err) in
             if let err = err {
@@ -44,7 +44,7 @@ class APIServicies {
                 let dataDictionary = try JSONSerialization.jsonObject(with: data, options: []) as! [String: Any]
                 print(dataDictionary)
                 if let allRestricitons = dataDictionary["restricions"] as? [String: Any],
-                    let restricitons = allRestricitons["RIX"] as? [String: Any] {
+                    let restricitons = allRestricitons[airportCode] as? [String: Any] {
                     let restriction = Restrictions(with: restricitons)
                     completion(.success(restriction))
                 }
@@ -104,11 +104,13 @@ class APIServicies {
             case code, country, city
         }
     }
+    
+    
     // MARK: - Restricitons
     struct Restrictions {
         var type: String
         var generalRestricitons: GeneralRestricitons?
-//        var byVaccination: RestrictionsByVaccination? = nil
+        var byVaccination: RestrictionsByVaccination?
 //        var byNationalities: [RestrictionsByNationality]? = nil
         
         init(with data: [String: Any]) {
@@ -117,64 +119,43 @@ class APIServicies {
                 generalRestricitons = GeneralRestricitons(with: general)
             }
             
-//            if let general = data["restrictionsByVaccination"] as? [String: Any] {
-//                byVaccination = byVaccination(with: general)
-//            }
-//
-//            if let general = data["restrictionsByNationality"] as? [String: Any] {
-//                byNationalities = RestrictionsByNationality(with: general)
-//            }
+            if let vaccine = data["restrictionsByVaccination"] as? [String: Any] {
+                byVaccination = RestrictionsByVaccination(with: vaccine)
+            }
         }
 
     }
     
     struct GeneralRestricitons {
-        var allowsTourists: String
-        var allowsBusinessVisit: String
-        var pcrRequiredForNoneResidents: String
-        var pcrRequiredForResidents: String
+        var allowsTourists: Bool
+        var allowsBusinessVisit: Bool
+        var covidPassportRequired: Bool
+        var pcrRequiredForNoneResidents: Bool
+        var pcrRequiredForResidents: Bool
         var generalInformation: String
         
         init(with data: [String: Any]) {
-            allowsTourists = data["allowsTourists"] as? String ?? ""
-            allowsBusinessVisit = data["allowsBusinessVisit"] as? String ?? ""
-            pcrRequiredForNoneResidents = data["pcrRequiredForNoneResidents"] as? String ?? ""
-            pcrRequiredForResidents = data["pcrRequiredForResidents"] as? String ?? ""
+            allowsTourists = data["allowsTourists"] as? Bool ?? false
+            allowsBusinessVisit = data["allowsBusinessVisit"] as? Bool ?? false
+            covidPassportRequired = data["covidPassportRequired"] as? Bool ?? false
+            pcrRequiredForNoneResidents = data["pcrRequiredForNoneResidents"] as? Bool ?? false
+            pcrRequiredForResidents = data["pcrRequiredForResidents"] as? Bool ?? false
             generalInformation = data["generalInformation"] as? String ?? ""
         }
-       
     }
     
-    struct RestrictionsByVaccination: Codable {
+    struct RestrictionsByVaccination {
         var isAllowed: Bool
         var dozesRequired: Int
         var minDaysAfterVaccination: Int
         var maxDaysAfterVaccination: Int
         
-        private enum CodingKeys: String, CodingKey {
-            case isAllowed, dozesRequired, minDaysAfterVaccination, maxDaysAfterVaccination
-        }
-    }
-    
-    struct RestrictionsByNationality: Codable {
-        var type: String
-        var data: [RestrictionsByNationalityData]?
-        private enum CodingKeys: String, CodingKey {
-            case type, data
-        }
-    }
-    
-    struct RestrictionsByNationalityData: Codable {
-        var allowsTourists: Bool?
-        var allowsBusinessVisit: Bool?
-        var pcrRequired: Bool?
-        var fastTestRequired: Bool?
-        var biometricPassportRequired: Bool?
-        var locatorFormRequired: Bool?
-        var covidPassportRequired: Bool?
-        
-        private enum CodingKeys: String, CodingKey {
-            case allowsTourists, allowsBusinessVisit, pcrRequired, fastTestRequired, biometricPassportRequired, locatorFormRequired, covidPassportRequired
+        init(with data: [String: Any]) {
+            isAllowed = data["isAllowed"] as? Bool ?? false
+            dozesRequired = data["dozesRequired"] as? Int ?? 0
+            minDaysAfterVaccination = data["minDaysAfterVaccination"] as? Int ?? 0
+            maxDaysAfterVaccination = data["maxDaysAfterVaccination"] as? Int ?? 0
+            
         }
     }
 }

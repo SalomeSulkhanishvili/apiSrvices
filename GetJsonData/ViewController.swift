@@ -12,7 +12,6 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
-        //http://covid-restrictions-api.noxtton.com/v1/vaccine
         DispatchQueue.main.async {
             APIServicies.getVaccines(completion: { result in
                 switch result {
@@ -51,6 +50,7 @@ class ViewController: UIViewController {
         
         DispatchQueue.main.async {
             APIServicies.getRestrictionsInfo(from: "german",
+                                             countryCode: "BER",
                                              to: "RIX",
                                              with: "sinovac", completion: {result in
                 switch result {
