@@ -111,7 +111,7 @@ class APIServicies {
         var type: String
         var generalRestricitons: GeneralRestricitons?
         var byVaccination: RestrictionsByVaccination?
-//        var byNationalities: [RestrictionsByNationality]? = nil
+        var byNationalities: RestrictionsByNationalityData? = nil
         
         init(with data: [String: Any]) {
             type = data["type"] as? String ?? ""
@@ -119,8 +119,8 @@ class APIServicies {
                 generalRestricitons = GeneralRestricitons(with: general)
             }
             
-            if let vaccine = data["restrictionsByVaccination"] as? [String: Any] {
-                byVaccination = RestrictionsByVaccination(with: vaccine)
+            if let restriciton = data["restrictionsByNationality"] as? [[String: Any]] {
+                byNationalities = RestrictionsByNationalityData(with: restriciton)
             }
         }
 
@@ -156,6 +156,41 @@ class APIServicies {
             minDaysAfterVaccination = data["minDaysAfterVaccination"] as? Int ?? 0
             maxDaysAfterVaccination = data["maxDaysAfterVaccination"] as? Int ?? 0
             
+        }
+    }
+
+    struct RestrictionsByNationalityData {
+        var allowsTourists: Bool?
+        var allowsBusinessVisit: Bool?
+        var pcrRequired: Bool?
+        var fastTestRequired: Bool?
+        var biometricPassportRequired: Bool?
+        var locatorFormRequired: Bool?
+        var covidPassportRequired: Bool?
+        
+        enum types: String {
+            case visit = "Visit Type"
+            case covidTest = "Covid Test"
+            case documentsRequired = "Documents Required"
+        }
+        
+        init(with datas: [[String: Any]]) {
+            for data in datas {
+                guard let restrictionType = data["type"]  as? String,
+                      let restrictionData = data["data"] as? [String: Bool] else { return }
+               
+                if restrictionType == types.visit.rawValue {
+                    allowsTourists = restrictionData["allowsTourists"] ?? false
+                    allowsBusinessVisit = restrictionData["allowsBusinessVisit"] ?? false
+                } else if restrictionType == types.covidTest.rawValue {
+                    pcrRequired = restrictionData["pcrRequired"] ?? false
+                    fastTestRequired = restrictionData["fastTestRequired"] ?? false
+                } else if restrictionType == types.documentsRequired.rawValue {
+                    biometricPassportRequired = restrictionData["biometricPassportRequired"] ?? false
+                    locatorFormRequired = restrictionData["locatorFormRequired"] ?? false
+                    covidPassportRequired = restrictionData["covidPassportRequired"] ?? false
+                }
+            }
         }
     }
 }
