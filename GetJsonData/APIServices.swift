@@ -168,7 +168,7 @@ class APIServicies {
         var locatorFormRequired: Bool?
         var covidPassportRequired: Bool?
         
-        enum types: String {
+        enum Types: String {
             case visit = "Visit Type"
             case covidTest = "Covid Test"
             case documentsRequired = "Documents Required"
@@ -179,13 +179,13 @@ class APIServicies {
                 guard let restrictionType = data["type"]  as? String,
                       let restrictionData = data["data"] as? [String: Bool] else { return }
                
-                if restrictionType == types.visit.rawValue {
+                if restrictionType == Types.visit.rawValue {
                     allowsTourists = restrictionData["allowsTourists"] ?? false
                     allowsBusinessVisit = restrictionData["allowsBusinessVisit"] ?? false
-                } else if restrictionType == types.covidTest.rawValue {
+                } else if restrictionType == Types.covidTest.rawValue {
                     pcrRequired = restrictionData["pcrRequired"] ?? false
                     fastTestRequired = restrictionData["fastTestRequired"] ?? false
-                } else if restrictionType == types.documentsRequired.rawValue {
+                } else if restrictionType == Types.documentsRequired.rawValue {
                     biometricPassportRequired = restrictionData["biometricPassportRequired"] ?? false
                     locatorFormRequired = restrictionData["locatorFormRequired"] ?? false
                     covidPassportRequired = restrictionData["covidPassportRequired"] ?? false
